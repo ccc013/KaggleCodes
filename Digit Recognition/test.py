@@ -100,16 +100,16 @@ def saveResult(result,csvName):
     :param csvName: 存放结果的csv文件名
     :return:
     """
-    with open(csvName, 'w', newline='') as myFile:
+    with open(csvName, 'wb') as myFile:
         myWriter=csv.writer(myFile)
-        tmp = ['ImageId', 'Label']
+        tmp = ["ImageId", "Label"]
         myWriter.writerow(tmp)
         count = 1
         for i in result:
             tmp = []
             tmp.append(count)
             count += 1
-            tmp.append(i)
+            tmp.append(int(i))
             myWriter.writerow(tmp)
 
 def classify_knn(inX, dataSet, labels, k):
@@ -180,7 +180,7 @@ def random_forest_classifier(trainData,trainLabel,testData):
     使用sklearn的 Random Forest
     """
     model = RandomForestClassifier(n_estimators=8)
-    model.fit(trainData, trainLabel)
+    model.fit(trainData, ravel(trainLabel))
     testLabel = model.predict(testData)
     saveResult(testLabel, 'sklearn_rf_result.csv')
     return testLabel
@@ -195,6 +195,8 @@ def handwritingClassTest(trainFile, testFile, resultFile):
     """
     print("prepare trainData...")
     trainData, trainLabel = loadTrainData(trainFile)
+    r, c = shape(trainLabel)
+    print(r, c)
     print("prepare testData...")
     testData = loadTestData(testFile)
     testLabel = loadTestResult(resultFile)
@@ -207,15 +209,16 @@ def handwritingClassTest(trainFile, testFile, resultFile):
     # 使用不同算法
     start_knn_time = time.time()
     print("using KNN...")
-    # result1 = knnClassify(trainData, trainLabel, testData)
+    result1 = knnClassify(trainData, trainLabel, testData)
     print("totally taking %fs time" % (time.time() - start_knn_time))
     start_svm_time = time.time()
     print("using SVM...")
-    # result2 = svcClassify(trainData, trainLabel, testData)
+    
+    result2 = svcClassify(trainData, trainLabel, testData)
     print("totally taking %fs time" % (time.time() - start_svm_time))
     start_rf_time = time.time()
     print("using RF...")
-    trainLabel = tile(trainLabel, (m, 1))
+    trainLabel = tile(trainLabel, (r, 1))
     result3 = random_forest_classifier(trainData, trainLabel, testData)
     print("totally taking %fs time" % (time.time() - start_rf_time))
 
